@@ -1,0 +1,60 @@
+<mvc:View controllerName="zficuststat.controller.Main"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:fb="sap.ui.comp.filterbar"
+    xmlns:core="sap.ui.core">
+    <Page id="page" title="{i18n>title}">
+    <content>
+        <fb:FilterBar id="fbCustomer" search=".onSearch" showGoOnFB="true"  useToolbar="true" >
+        <fb:filterGroupItems>
+        <fb:FilterGroupItem  groupName="__basic" name="CompanyCode" label="Company Code" mandatory="true" visibleInFilterBar="true">
+          <fb:control>
+             <ComboBox id="cbCompanyCode"   width="220px"
+             selectedKey="{filter>/CompanyCode}"
+              items="{ path:'/CompanyCodeSet'}">
+             <core:Item
+        key="{Bukrs}"
+        text="{Bukrs} - {Butxt}" />
+        </ComboBox>
+        </fb:control>
+        </fb:FilterGroupItem>
+        <fb:FilterGroupItem  groupName="__basic" name="Customer" label="Customer" mandatory="true"  visibleInFilterBar="true">
+        <fb:control>
+           <MultiInput
+            id="miCustomer"
+            width="300px"
+            showValueHelp="true"
+            valueHelpRequest=".onCustomerValueHelp"/>
+        </fb:control>
+        </fb:FilterGroupItem>
+        <fb:FilterGroupItem groupName="__basic" name="Division" label="Division" mandatory="true" visibleInFilterBar="true">
+        <fb:control>
+        <ComboBox id="cbDivision"
+            width="180px"
+            selectedKey="{filter>/Division}"
+             items="{path:'/DivisionSet'}">
+             <core:Item
+        key="{Spart}"
+        text="{Spart} - {Vtext}" />
+        </ComboBox>
+    </fb:control>
+</fb:FilterGroupItem>
+<fb:FilterGroupItem groupName="__basic" name="DateRange" label="Date Range" mandatory="true" visibleInFilterBar="true">
+    <fb:control>
+        <DateRangeSelection
+            id="drsDate"
+            width="600px"
+            dateValue="{filter>/FromDate}"
+            secondDateValue="{filter>/ToDate}"
+            maxDate="{filter>/MaxDate}"
+            change=".onDateRangeChange" 
+            displayFormat="dd-MM-yyyy"
+            valueFormat="yyyyMMdd"/>
+    </fb:control>
+</fb:FilterGroupItem>
+         </fb:filterGroupItems>
+         </fb:FilterBar>
+      </content>
+    </Page>
+</mvc:View>
