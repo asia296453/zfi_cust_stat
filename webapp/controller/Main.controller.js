@@ -5,11 +5,14 @@ sap.ui.define([
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/m/Token",
-    "sap/m/MessageBox"
-], function (Controller, Fragment, JSONModel, Filter, FilterOperator, Token, MessageBox) {
+    "sap/m/MessageBox",
+    "sap/m/PDFViewer"
+], function (Controller, Fragment, JSONModel, Filter, FilterOperator, Token, MessageBox , PDFViewer) {
     "use strict";
     return Controller.extend("zficuststat.controller.Main", {
         onInit() {
+            this._pdfViewer = new PDFViewer({"isTrustedSource" : true});
+            this.getView().addDependent(this._pdfViewer);
             this._sKey = "";
             this._sDescription = "";
             this._sEntitySet = "";
@@ -131,7 +134,7 @@ sap.ui.define([
 
             var sFrom = oDateFormat.format(dFrom);
             var sTo = oDateFormat.format(dTo);
-            debugger;
+            
             var oDateFilter = (sFrom === sTo)
                 ? new Filter("Budat", FilterOperator.EQ, sFrom)
                 : new Filter({
@@ -152,16 +155,34 @@ sap.ui.define([
                 })
             ];
             oView.setBusy(true);
-            oView.getModel().read("/FormSet", {
-                filters: aFilters,
-                success: function (oData) {
-                    oView.setBusy(false);
-                },
-                error: function () {
-                    oView.setBusy(false);
-                    MessageBox.error("Failed to load customer statement");
-                }
+
+            var okunr = [];
+            aTokens.map(function (oToken) {
+                okunr.push(oToken.getKey());
             });
+            var skunnrstring = okunr.join(",");
+            var sstring = "";
+            var sname = 'Customer Statement';
+            debugger;
+            sstring = "Bukrs='" + oFilter.CompanyCode + "',Kunnr='" + skunnrstring + "',Spart='" + oFilter.Division + "',FromDate='" + sFrom + "',ToDate='" + sTo + "'";
+            sstring = "/sap/opu/odata/sap/ZFI_CUST_STATEMENT_SRV/FormSet(" + sstring + ")/$value"
+
+            console.log("PDF URL:", sstring);
+
+            this._pdfViewer.setSource(sstring);
+            this._pdfViewer.setTitle(sname);
+            this._pdfViewer.open();
+
+            // oView.getModel().read("/FormSet", {
+            //     filters: aFilters,
+            //     success: function (oData) {
+            //         oView.setBusy(false);
+            //     },
+            //     error: function () {
+            //         oView.setBusy(false);
+            //         MessageBox.error("Failed to load customer statement");
+            //     }
+            // });
         }
     });
 });

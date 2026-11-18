@@ -10,13 +10,14 @@
         <fb:filterGroupItems>
         <fb:FilterGroupItem  groupName="__basic" name="CompanyCode" label="Company Code" mandatory="true" visibleInFilterBar="true">
           <fb:control>
-             <ComboBox id="cbCompanyCode"   width="220px"
-             selectedKey="{filter>/CompanyCode}"
-              items="{ path:'/CompanyCodeSet'}">
-             <core:Item
-        key="{Bukrs}"
-        text="{Bukrs} - {Butxt}" />
-        </ComboBox>
+            <Input
+    id="inpCompanyCode"
+    width="220px"
+    value="{filter>/CompanyCode}"
+    showValueHelp="true"
+    valueHelpRequest=".onCompanyCodeValueHelp">
+        
+        </Input>
         </fb:control>
         </fb:FilterGroupItem>
         <fb:FilterGroupItem  groupName="__basic" name="Customer" label="Customer" mandatory="true"  visibleInFilterBar="true">
@@ -30,14 +31,12 @@
         </fb:FilterGroupItem>
         <fb:FilterGroupItem groupName="__basic" name="Division" label="Division" mandatory="true" visibleInFilterBar="true">
         <fb:control>
-        <ComboBox id="cbDivision"
-            width="180px"
-            selectedKey="{filter>/Division}"
-             items="{path:'/DivisionSet'}">
-             <core:Item
-        key="{Spart}"
-        text="{Spart} - {Vtext}" />
-        </ComboBox>
+        <Input
+    id="inpDivision"
+    width="180px"
+    value="{filter>/Division}"
+    showValueHelp="true"
+    valueHelpRequest=".onDivisionValueHelp"/>
     </fb:control>
 </fb:FilterGroupItem>
 <fb:FilterGroupItem groupName="__basic" name="DateRange" label="Date Range" mandatory="true" visibleInFilterBar="true">
