@@ -1,3 +1,4 @@
+
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/core/Fragment",
@@ -13,9 +14,8 @@ sap.ui.define([
         onInit() {
             this._pdfViewer = new PDFViewer({"isTrustedSource" : true});
             this.getView().addDependent(this._pdfViewer);
-            this._sKey = "";
-            this._sDescription = "";
-            this._sEntitySet = "";
+            this._oVHConfig = {};
+             this._oSource = null;
             var dToday = new Date();
             var dFirstOfMonth = new Date(dToday.getFullYear(), dToday.getMonth(), 1);
             var oFilterModel = new JSONModel({
@@ -28,32 +28,51 @@ sap.ui.define([
             });
             this.getView().setModel(oFilterModel, "filter");
         },
-        onCustomerValueHelp: async function () {
-            this._sEntitySet = "/CustomerNoSet";
-            this._sKey = "Kunnr";
-            this._sDescription = "Name1";
-            if (!this._oValueHelpDialog) {
-                this._oValueHelpDialog = await Fragment.load({
-                    id: this.getView().getId(),
-                    name: "zficuststat.fragment.ValueHelp",
-                    controller: this
-                });
-                this.getView().addDependent(this._oValueHelpDialog);
-            }
-            this._bindValueHelp();
-            this._oValueHelpDialog.setTitle("Select Customer");
-            this._oValueHelpDialog.open();
-        },
+        _openValueHelp: async function () {
+         if (!this._oValueHelpDialog) {
+
+        this._oValueHelpDialog = await Fragment.load({
+            id: this.getView().getId(),
+            name: "zficuststat.fragment.ValueHelp",
+            controller: this
+        });
+        this.getView().addDependent(this._oValueHelpDialog);
+    }
+    this._bindValueHelp();
+    var oTable = this.byId("tblValueHelp");
+
+oTable.setMode(
+    this._oVHConfig.multiSelect ?
+    "MultiSelect" :
+    "SingleSelectLeft"
+);
+    this._oValueHelpDialog.setTitle(this._oVHConfig.title);
+    this._oValueHelpDialog.open();
+},
+        onCompanyCodeValueHelp: function (oEvent) {
+         this._oSource = oEvent.getSource();
+         this._oVHConfig = { entitySet: "/CompanyCodeSet",key: "Bukrs",  description: "Butxt", title: "Select Company Code", multiSelect: false};
+    this._openValueHelp();
+},
+onCustomerValueHelp: function (oEvent) { this._oSource = oEvent.getSource();
+     this._oVHConfig = { entitySet: "/CustomerNoSet", key: "Kunnr", description: "Name1", title: "Select Customer",  multiSelect: true};
+    this._openValueHelp();
+},
+onDivisionValueHelp: function (oEvent) {
+    this._oSource = oEvent.getSource();
+    this._oVHConfig = { entitySet: "/DivisionSet", key: "Spart", description: "Vtext", title: "Select Division", multiSelect: false};
+    this._openValueHelp();
+},
         _bindValueHelp: function () {
             var oTable = this.byId("tblValueHelp");
             oTable.removeAllItems();
             var oTemplate = new sap.m.ColumnListItem({
                 cells: [
-                    new sap.m.Text({ text: "{vh>" + this._sKey + "}" }),
-                    new sap.m.Text({ text: "{vh>" + this._sDescription + "}" })
+                    new sap.m.Text({ text: "{vh>" + this._oVHConfig.key + "}" }),
+                    new sap.m.Text({ text: "{vh>" + this._oVHConfig.description + "}" })
                 ]
             });
-            this.getView().getModel().read(this._sEntitySet, {
+            this.getView().getModel().read(this._oVHConfig.entitySet, {
                 success: function (oData) {
                     this._aValueHelpData = oData.results;
                     var oVHModel = new JSONModel({ results: this._aValueHelpData });
@@ -72,29 +91,41 @@ sap.ui.define([
             }
             sValue = sValue.toLowerCase();
             var aFiltered = this._aValueHelpData.filter(function (oItem) {
-                return String(oItem[this._sKey]).toLowerCase().includes(sValue) ||
-                    String(oItem[this._sDescription]).toLowerCase().includes(sValue);
+                return String(oItem[this._oVHConfig.key]).toLowerCase().includes(sValue) ||
+                    String(oItem[this._oVHConfig.description]).toLowerCase().includes(sValue);
             }.bind(this));
             oVH.setProperty("/results", aFiltered);
         },
         onValueHelpCancel: function () {
             this._oValueHelpDialog.close();
         },
-        onValueHelpOk: function () {
-            var aItems = this.byId("tblValueHelp").getSelectedItems();
-            var oMultiInput = this.byId("miCustomer");
-            oMultiInput.removeAllTokens();
-
-            aItems.forEach(function (oItem) {
-                var oData = oItem.getBindingContext("vh").getObject();
-                oMultiInput.addToken(new Token({
-                    key: oData[this._sKey],
-                    text: oData[this._sDescription] + " (" + oData[this._sKey] + ")"
-                }));
-            }.bind(this));
-
-            this._oValueHelpDialog.close();
-        },
+onValueHelpOk: function () {
+    var oTable = this.byId("tblValueHelp");
+    var oControl = this._oSource;
+    if (this._oVHConfig.multiSelect) {
+        var aItems = oTable.getSelectedItems();
+        oControl.removeAllTokens();
+        aItems.forEach(function (oItem) {
+            var oData = oItem.getBindingContext("vh").getObject();
+            oControl.addToken(new Token({
+                key: oData[this._oVHConfig.key],
+                text: oData[this._oVHConfig.description] +
+                      " (" + oData[this._oVHConfig.key] + ")"
+            }));
+        }.bind(this));
+    } else {
+        var oItem = oTable.getSelectedItem();
+        if (!oItem) {
+            return;
+        }
+        var oData = oItem.getBindingContext("vh").getObject();
+        oControl.setValue(oData[this._oVHConfig.key]);
+        if (oControl.getBinding("value")) {
+            oControl.getBinding("value").setValue(oData[this._oVHConfig.key]);
+        }
+    }
+    this._oValueHelpDialog.close();
+},
         onDateRangeChange: function (oEvent) {
             var oDRS = oEvent.getSource();
             var bValid = oEvent.getParameter("valid");
